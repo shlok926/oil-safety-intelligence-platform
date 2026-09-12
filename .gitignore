@@ -1,0 +1,75 @@
+# === OS ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Editors / IDEs ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# === Python (backend / ml, once implemented) ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+
+# === Node / Frontend (once implemented) ===
+node_modules/
+.next/
+out/
+dist/
+build/
+.turbo/
+*.tsbuildinfo
+.env
+.env.local
+.env.*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# === ML artifacts (never commit large binaries/model weights) ===
+*.pt
+*.ckpt
+*.onnx
+*.h5
+ml/models/*.bin
+ml/data/raw/
+ml/data/processed/
+!ml/data/**/.gitkeep
+
+# === Secrets — never commit ===
+*.pem
+*.key
+.env
+*.secret
+secrets/
+credentials.json
+
+# === Logs ===
+*.log
+logs/
+
+# === Docker ===
+*.pid
+
+# === Misc build/output ===
+*.tmp
+*.bak
+.cache/

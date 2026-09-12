@@ -1,0 +1,23 @@
+# Normalize line endings
+* text=auto eol=lf
+
+*.md text
+*.py text
+*.ts text
+*.tsx text
+*.json text
+*.yml text
+*.yaml text
+
+# Treat these as binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.zip binary
+
+# Ensure large diff-noisy docs don't break diffs
+*.md diff=markdown

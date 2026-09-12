@@ -1,0 +1,86 @@
+name: Docs Lint & Consistency Guardrails
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-lint.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docs/**'
+      - '.github/workflows/docs-lint.yml'
+  workflow_dispatch:
+
+jobs:
+  markdown-lint:
+    name: Markdown Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint Markdown formatting
+        uses: DavidAnson/markdownlint-cli2-action@v18
+        continue-on-error: true
+        with:
+          globs: 'docs/**/*.md'
+
+      - name: Check for broken relative links
+        uses: gaurav-nelson/github-action-markdown-link-check@v1
+        continue-on-error: true
+        with:
+          use-quiet-mode: 'yes'
+          config-file: '.github/workflows/mlc-config.json'
+          folder-path: 'docs'
+
+  consistency-guardrails:
+    name: Regression Guardrails (from 16_DOCUMENT_CONSISTENCY_AUDIT.md)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fail if barrier taxonomy regresses to 5-state or 7-state
+        run: |
+          if grep -rniE "5-state|5 state|7-state|7 state" docs/ | grep -v "16_DOCUMENT_CONSISTENCY_AUDIT.md"; then
+            echo "::error::Barrier taxonomy must be described as 6-state. See docs/01_PROJECT_CONSTITUTION.md §11 and docs/16_DOCUMENT_CONSISTENCY_AUDIT.md FIX-01/FIX-03."
+            exit 1
+          fi
+
+      - name: Fail if verbose/duplicate barrier enum names reappear
+        run: |
+          if grep -rnE "INCOMPLETE_COMPROMISED|MISSING_NOT_IMPLEMENTED|FAILED_DEGRADED|BYPASSED_DEFEATED|UNKNOWN_UNVERIFIED" docs/ | grep -v "16_DOCUMENT_CONSISTENCY_AUDIT.md"; then
+            echo "::error::Use the canonical barrier enum: PRESENT_VERIFIED, MISSING, INCOMPLETE, FAILED, BYPASSED, UNKNOWN. See 16_DOCUMENT_CONSISTENCY_AUDIT.md FIX-02."
+            exit 1
+          fi
+
+      - name: Fail if SIF enum drifts from canonical YES/NO/REVIEW
+        run: |
+          # NOTE: SIF_YES / SIF_NO / SIF_REV are legitimate Mermaid diagram
+          # *node IDs* in 05_DATA_STRATEGY_AND_LABELING.md and
+          # 08_AI_ARCHITECTURE.md (internal identifiers, not asserted data
+          # values — the visible node label text already says "SIF Potential:
+          # YES/NO"). Only SIF_POTENTIAL and bare `POTENTIAL` as a literal
+          # enum token are actual regressions (see FIX-09).
+          if grep -rnE "SIF_POTENTIAL|\`POTENTIAL\`" docs/ | grep -v "16_DOCUMENT_CONSISTENCY_AUDIT.md"; then
+            echo "::error::SIF Potential enum must be YES / NO / REVIEW everywhere. See 16_DOCUMENT_CONSISTENCY_AUDIT.md FIX-09."
+            exit 1
+          fi
+
+      - name: Fail if deprecated table/column names reappear
+        run: |
+          if grep -rnE "audit_logs|char_start\b|char_end\b" docs/ | grep -v "16_DOCUMENT_CONSISTENCY_AUDIT.md"; then
+            echo "::error::Use audit_events (not audit_logs) and start_offset/end_offset (not char_start/char_end). See 16_DOCUMENT_CONSISTENCY_AUDIT.md FIX-11."
+            exit 1
+          fi
+
+      - name: Fail if FR-003/004/005/006 are misused for SIF/Barrier/LSR/Pattern
+        run: |
+          if grep -rnE "\`FR-003\`.*SIF|\`FR-004\`.*Barrier|\`FR-005\`.*IOGP|\`FR-006\`.*Pattern" docs/ | grep -v "16_DOCUMENT_CONSISTENCY_AUDIT.md"; then
+            echo "::error::These concepts belong to AI-004/AI-005/AI-006/AI-007 per 06_TECHNICAL_REQUIREMENTS.md. See 16_DOCUMENT_CONSISTENCY_AUDIT.md FIX-05."
+            exit 1
+          fi
+
+      - name: Warn on unresolved TODO/FIXME markers in docs
+        run: |
+          grep -rn "TODO\|FIXME\|XXX" docs/ || echo "No unresolved markers found."

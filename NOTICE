@@ -1,0 +1,52 @@
+OIL Safety Intelligence Platform
+Copyright 2026 Team Tech Smashers
+
+This product includes software and documentation developed by Team Tech Smashers
+as an independent prototype submission for Smart India Hackathon 2026,
+in response to problem statement SIH26165.
+
+================================================================================
+THIRD-PARTY NAMES, MARKS, AND STANDARDS — ATTRIBUTION AND DISCLAIMER
+================================================================================
+
+1. Oil India Limited (OIL)
+   "Oil India Limited" and "OIL" are used throughout this repository solely
+   to identify the organization that issued Smart India Hackathon problem
+   statement SIH26165. This project is an independent, unofficial hackathon
+   prototype. No affiliation, sponsorship, partnership, or endorsement by
+   Oil India Limited is claimed or implied. No confidential or proprietary
+   data belonging to Oil India Limited has been used in this project; all
+   example data is synthetic or illustrative (see docs/05_DATA_STRATEGY_AND_LABELING.md).
+
+2. IOGP Life-Saving Rules
+   References to the "IOGP Life-Saving Rules" describe a safety standard
+   publicly published by the International Association of Oil & Gas
+   Producers (IOGP). This project is not affiliated with, licensed by,
+   certified by, or endorsed by IOGP. Rule names and their general intent
+   are referenced for descriptive and educational purposes only; this
+   project does not claim to reproduce IOGP's proprietary training
+   materials, and does not claim any official compliance determination
+   capability (see docs/01_PROJECT_CONSTITUTION.md and docs/13 in the
+   product blueprint for the explicit non-claims policy).
+
+3. Smart India Hackathon (SIH)
+   "Smart India Hackathon" and "SIH" are marks of their respective owners
+   (Government of India / AICTE and affiliated bodies). Referenced here
+   solely to identify the competition context of this submission.
+
+================================================================================
+OPEN SOURCE / STANDARD-FORMAT ACKNOWLEDGEMENTS
+================================================================================
+
+- This project's contribution guidelines are informed by common open-source
+  community conventions (e.g., Conventional Commits, Keep a Changelog).
+- The Code of Conduct is adapted from the Contributor Covenant, version 2.1,
+  available at https://www.contributor-covenant.org/version/2/1/code_of_conduct.html
+  (used under its own stated terms, which explicitly permit reuse/adaptation).
+
+================================================================================
+
+If you are a rights holder for any name, mark, or standard referenced above
+and believe this NOTICE does not adequately reflect the nature of that
+reference, please open an issue per SECURITY.md / CONTRIBUTING.md and it
+will be corrected promptly.

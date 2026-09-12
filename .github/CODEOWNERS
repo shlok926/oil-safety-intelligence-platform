@@ -1,0 +1,46 @@
+# CODEOWNERS
+# NOTE: Replace the placeholder @handles below with real GitHub usernames
+# for each Tech Smashers team member before enabling branch protection
+# rules that require CODEOWNERS review.
+
+# Default owners for everything (fallback)
+*                                       @shlok @tanisha
+
+# Governance — requires wider review since it's the source of truth
+/docs/01_PROJECT_CONSTITUTION.md        @shlok @tanisha @krishna-panchal @yogeshwari @krishna-ayanele @rushikesh
+/CHANGELOG.md                           @shlok
+
+# Problem framing & research
+/docs/03_PROBLEM_STATEMENT.md           @shlok
+/docs/04_MARKET_RESEARCH.md             @rushikesh
+
+# Product
+/docs/02_PRODUCT_BLUEPRINT.md           @tanisha
+
+# Data & requirements
+/docs/05_DATA_STRATEGY_AND_LABELING.md  @yogeshwari
+/docs/06_TECHNICAL_REQUIREMENTS.md      @yogeshwari @krishna-panchal
+
+# Architecture & AI
+/docs/07_SYSTEM_ARCHITECTURE.md         @krishna-panchal
+/docs/08_AI_ARCHITECTURE.md             @krishna-panchal
+/ml/                                    @krishna-panchal
+
+# Data & API
+/docs/09_DATABASE_DESIGN.md             @krishna-ayanele
+/docs/10_API_SPECIFICATION.md           @krishna-ayanele
+/backend/                               @krishna-ayanele
+
+# Security, UI/UX, Deployment
+/docs/11_SECURITY_ARCHITECTURE.md       @rushikesh
+/docs/12_UI_UX_DESIGN.md                @rushikesh
+/docs/13_DEPLOYMENT.md                  @rushikesh
+/frontend/                              @rushikesh
+
+# Testing, roadmap, and consistency audit
+/docs/14_TESTING_STRATEGY.md            @yogeshwari
+/docs/15_ROADMAP.md                     @krishna-ayanele
+/docs/16_DOCUMENT_CONSISTENCY_AUDIT.md  @shlok @tanisha
+
+# Diagrams (cross-cutting)
+/docs/ARCHITECTURE_DIAGRAMS_MERMAID.md  @krishna-panchal @krishna-ayanele

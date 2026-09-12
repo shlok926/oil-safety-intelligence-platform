@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a Question / Discussion
+    url: https://github.com/shlok926/oil-safety-intelligence-platform/discussions
+    about: For questions and open-ended discussion, please use GitHub Discussions instead of an issue.
+  - name: Security Vulnerability
+    url: https://github.com/shlok926/oil-safety-intelligence-platform/security/advisories/new
+    about: Please report security vulnerabilities privately — see SECURITY.md. Do not open a public issue.
