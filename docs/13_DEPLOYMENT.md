@@ -88,7 +88,7 @@ TARGET A: LOCAL DEV                 TARGET B: SIH PROTOTYPE              TARGET 
 • Tooling: Docker Compose / Native  • Tooling: Docker Compose + TLS      • Tooling: Enterprise Kubernetes (K8s)
 • DB: Local Containerized Postgres  • DB: Containerized Persistent SSD   • DB: Managed HA PostgreSQL Cluster
 • Data: Synthetic 60-Report MVD     • Data: Synthetic MVD + Public CSRA  • Data: Authorized Enterprise OIL Data
-• Net: Localhost Bridge             • Net: HTTPS (Port 443) via Caddy/Nginx• Net: Isolated Corporate Subnet (DMZ)
+• Net: Localhost Bridge             • Net: HTTP/HTTPS via Nginx          • Net: Isolated Corporate Subnet (DMZ)
 • Purpose: Rapid Feature Iteration  • Purpose: Live Hackathon Jury Demo  • Purpose: Live Production HSE Triage
 ```
 
@@ -99,7 +99,7 @@ TARGET A: LOCAL DEV                 TARGET B: SIH PROTOTYPE              TARGET 
 | **Host Operating System** | Windows 11 (WSL2) / macOS / Ubuntu | Ubuntu 22.04 LTS (Cloud VPS) | Enterprise Red Hat Enterprise Linux / Rocky Linux |
 | **Compute Sizing** | 4 Cores, 8GB RAM, 20GB SSD | 4 vCPU, 8GB RAM, 50GB NVMe SSD | Auto-scaled Pods (CPU & GPU Inference Pools) |
 | **Container Engine** | Docker Desktop / Docker Engine 26+ | Docker Engine + Compose Plugin | OpenShift / Kubernetes 1.28+ (`[TO BE CONFIRMED]`) |
-| **Ingress & TLS** | Plaintext HTTP (`localhost:3000`) | Automated TLS via Let's Encrypt / Caddy | Enterprise Hardware WAF + Corporate Certificates |
+| **Ingress & TLS** | Plaintext HTTP (`localhost:80` / `3000`) | Nginx Reverse Proxy / Static Server | Enterprise Hardware WAF + Corporate Certificates |
 | **Authentication** | Seeded Developer Credentials | Mock JWT Bearer Auth (`HSE_OFFICER`) | Corporate SAML 2.0 / OIDC SSO (`[TO BE CONFIRMED]`) |
 | **Database Persistence** | Named Docker Volume (`pgdata_dev`) | Encrypted Block Storage Mount | Multi-AZ Replicated PostgreSQL with Continuous WAL |
 | **AI Inference Mode** | Local CPU (`all-MiniLM-L6-v2`) | Local CPU Multi-Worker | GPU Inference Nodes (Triton / TorchServe) |
@@ -113,13 +113,13 @@ The local development environment provides zero-friction developer onboarding vi
 ```
 [ DEVELOPER LAPTOP HOST ]
   │
-  ├── Port 3000: Frontend UI (Next.js / Vite Static Server)
-  │     └── Rewrites /api/* to Port 8000
+  ├── Port 80 / 3000: Frontend UI (React 18 / Vite on Nginx)
+  │     └── Nginx proxies /api/v1/* to Backend Port 8000
   │
   ├── Port 8000: Backend REST API (FastAPI / Python 3.11)
-  │     ├── Hosts NLP Preprocessing & Entity Extraction
-  │     ├── Executes Causal SIF Potential Engine & Barrier Evaluator
-  │     └── Houses Explainability Span Matcher & Pattern Engine
+  │     ├── Hosts NLP Preprocessing & Entity Extraction (spaCy en_core_web_sm)
+  │     ├── Executes Causal SIF Potential Engine & 6-State Barrier Evaluator
+  │     └── Houses MiniLM LSR Matcher & Pattern Engine
   │
   └── Port 5432: Relational Database (PostgreSQL 16)
         └── Bound to Local Persistent Volume: ./data/postgres
@@ -139,42 +139,42 @@ cd oil-safety-intelligence-platform
 # 2. Instantiate local environment variables from template
 cp .env.example .env
 
-# 3. Build and launch all services in detached mode
+# 3. Build and launch all services in detached mode (PostgreSQL startup)
 docker compose -f docker-compose.local.yml up -d --build
 
 # 4. Verify that all service containers are healthy
 docker compose ps
 
-# 5. Execute database schema migrations (Alembic / SQL)
+# 5. Execute database schema migrations (Alembic)
 docker compose exec backend python -m alembic upgrade head
 
-# 6. Seed the 60-report Minimum Viable Dataset (MVD)
-docker compose exec backend python scripts/seed_mvd60.py
+# 6. Execute H0 bootstrap seed script (backend/scripts/seed_data.py)
+# Initializes data_sources, default app_users, reference taxonomies, and synthetic MVD-60 benchmark reports
+docker compose exec backend python scripts/seed_data.py
 
 # 7. Execute automated smoke verification
 curl -s http://localhost:8000/health/live | grep "OK"
 
 # 8. Open the web console
-echo "Platform operational at: http://localhost:3000"
+echo "Platform operational at: http://localhost:80 (or http://localhost:3000)"
 ```
 
 ---
 
 ## 7. SIH Prototype / Demo Deployment Architecture
 
-For the live Smart India Hackathon jury demonstration, operational stability and sub-second response times are paramount. The platform is deployed on a dedicated high-performance Linux virtual machine running containerized services behind an automated reverse proxy `[RECOMMENDED IMPLEMENTATION]`:
+For the live Smart India Hackathon jury demonstration, operational stability and sub-second response times are paramount. The platform is deployed on a dedicated Linux virtual machine or local demonstration host running containerized services using Nginx for static serving and reverse proxying (`[RECOMMENDED IMPLEMENTATION]`):
 
 ```mermaid
 flowchart TD
-    INTERNET[Jury / Browser Client] -->|HTTPS Port 443| PROXY[Reverse Proxy: Caddy / Nginx]
+    INTERNET[Jury / Browser Client] -->|HTTP Port 80 / 3000| FE[Frontend Container: React/Vite + Nginx]
     
-    subgraph Docker Bridge Network: sih-platform-net
-        PROXY -->|HTTP Port 3000| FE[Frontend Container: Next.js Static Server]
-        PROXY -->|HTTP Port 8000| BE[Backend Container: FastAPI API Engine]
+    subgraph Docker Bridge Network: sih-net
+        FE -->|Reverse Proxy /api/v1| BE[Backend Container: FastAPI Engine]
         
         subgraph Co-Located Backend Worker Runtime
-            BE --> NLP[Contextual Tokenizer & Normalizer]
-            BE --> SIF[Causal Precursor Triad Engine]
+            BE --> NLP[spaCy Linguistic Parser]
+            BE --> SIF[Deterministic Precursor Reasoning Engine]
             BE --> BAR[6-State Barrier Evaluator]
             BE --> PAT[Multi-Dimensional Pattern Engine]
         end
@@ -202,12 +202,12 @@ flowchart TD
 |                        |                                      | throttling during transformer run. |
 +------------------------+--------------------------------------+------------------------------------+
 | Split Hosting          | Edge CDN asset delivery; independent | Split networking increases network |
-| (Vercel FE + Cloud BE) | frontend scaling.                    | hop latency ($>150\text{ms}$) and  |
+| (Vercel FE + Cloud BE) | frontend scaling.                    | hop latency (>150ms) and           |
 |                        |                                      | CORS configuration complexity.     |
 +----------------------------------------------------------------------------------------------------+
 ```
 
-> **Architectural Recommendation (`[RECOMMENDED IMPLEMENTATION]`):** Deploy the hackathon MVP on a **Single Cloud VPS (Ubuntu 22.04 LTS, 4 vCPU, 8GB RAM)** utilizing Docker Compose with an integrated Caddy reverse proxy for automated HTTPS. This eliminates external network latency between the frontend, backend, and database, guarantees zero cold-start delays during jury evaluation, and provides a 100% self-contained environment that can be duplicated locally in case of conference Wi-Fi failure.
+> **Architectural Recommendation (`[RECOMMENDED IMPLEMENTATION]`):** Deploy the hackathon MVP on a **Single Host / Cloud VPS (Ubuntu 22.04 LTS, 4 vCPU, 8GB RAM)** utilizing Docker Compose with an integrated 3-container topology (`sih-frontend` running Nginx for static serving and `/api/v1` reverse proxying, `sih-backend` with FastAPI, and `sih-database` with PostgreSQL 16). This eliminates external network latency between tiers, guarantees zero cold-start delays during jury evaluation, and provides a 100% self-contained environment that can be duplicated locally in case of conference Wi-Fi failure.
 
 ---
 
@@ -295,7 +295,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends libpq5 curl \
 COPY --from=builder /root/.local /home/appuser/.local
 COPY . /app
 
-# Pre-download and cache model weights into image layer
+# Pre-download and cache model weights into image layer for offline execution
+RUN /home/appuser/.local/bin/python -m spacy download en_core_web_sm && \
+    /home/appuser/.local/bin/python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('all-MiniLM-L6-v2')"
+
 RUN chown -R appuser:appuser /app
 USER appuser
 ENV PATH=/home/appuser/.local/bin:$PATH \
@@ -308,7 +311,7 @@ HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]
 ```
 
-### 11.2 Frontend Application Dockerfile
+### 11.2 Frontend Application Dockerfile & Nginx Reverse Proxy
 ```dockerfile
 FROM node:20-alpine AS builder
 WORKDIR /app
@@ -320,10 +323,32 @@ RUN npm run build
 FROM nginx:1.25-alpine AS runner
 COPY --from=builder /app/dist /usr/share/nginx/html
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 3000
+EXPOSE 80
 HEALTHCHECK --interval=15s --timeout=3s --retries=3 \
-  CMD wget --spider http://localhost:3000/ || exit 1
+  CMD wget --spider http://localhost:80/ || exit 1
 CMD ["nginx", "-g", "daemon off;"]
+```
+
+#### Frontend `nginx.conf` Specification
+```nginx
+server {
+    listen 80;
+    server_name localhost;
+
+    location / {
+        root /usr/share/nginx/html;
+        index index.html;
+        try_files $uri $uri/ /index.html;
+    }
+
+    location /api/v1/ {
+        proxy_pass http://backend:8000/api/v1/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 ```
 
 ---
@@ -387,31 +412,18 @@ services:
       dockerfile: Dockerfile
     container_name: sih-frontend
     restart: unless-stopped
+    ports:
+      - "80:80"
+      - "3000:80"
     depends_on:
       - backend
     networks:
       - sih-net
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:3000/"]
+      test: ["CMD", "wget", "--spider", "http://localhost:80/"]
       interval: 15s
       timeout: 3s
       retries: 3
-
-  proxy:
-    image: caddy:2-alpine
-    container_name: sih-proxy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./caddy_data:/data
-    depends_on:
-      - frontend
-      - backend
-    networks:
-      - sih-net
 ```
 
 ---
@@ -455,7 +467,7 @@ The backend implements distinct liveness and readiness probes (`10_API_SPECIFICA
 |---|---|---|---|---|---|
 | **PostgreSQL DB** | Storage volume full or crash. | `/health/ready` emits 503; connection refused. | Reports and dashboards show *"Database Offline"*. | Docker engine restarts container up to 5 times. | Clear old logs; expand host volume; run `docker compose up -d`. |
 | **NLP Transformer** | Out-of-Memory (OOM) during dense inference. | Process terminates with exit code 137. | Ingestion pauses; reports remain in `PENDING`. | Backend restarts worker thread; falls back to rules. | Allocate swap memory; tune batch size; inspect narrative length. |
-| **Reverse Proxy** | TLS certificate expired or port binding collision. | External HTTPS connection times out. | Browser displays connection refused. | Caddy automatically retries ACME renewal. | Verify DNS records; renew Let's Encrypt certificates manually. |
+| **Reverse Proxy** | Nginx port binding collision or config error. | External connection times out. | Browser displays connection refused. | Nginx container healthcheck fails; Docker restarts container. | Inspect `nginx.conf`; verify port bindings; restart via `docker compose restart frontend`. |
 | **Frontend UI** | Static asset bundle build corruption. | Ingress health probe returns 404/500. | Blank white screen rendered to users. | Nginx health probe fails; stops traffic. | Re-run `docker compose build frontend`; re-deploy image. |
 
 ---
@@ -576,10 +588,10 @@ The platform cleanly decouples internal operational telemetry from the user-faci
 
 ## 18. Offline / Degraded Network Demonstration Contingency
 
-To guarantee flawless execution during the live SIH 2026 hackathon evaluation, the platform includes a **100% Offline Demonstration Protocol**:
-1. **Local Pre-Cached Weights:** Transformer weights (`all-MiniLM-L6-v2`, ~80MB) and SpaCy linguistic models are baked directly into the Docker image layers; zero runtime network downloads are permitted.
-2. **Pre-Seeded Synthetic Database:** The PostgreSQL container is pre-populated with the 60-report MVD dataset, 3 active precursor clusters, and 8 historical human reviews.
-3. **Local Standalone Mode:** If venue Wi-Fi fails, the presenter switches their browser to `http://localhost:3000`. The entire end-to-end stack runs self-contained on the presenter's laptop with sub-second execution speeds.
+To support resilient evaluation during the live SIH 2026 hackathon, the platform is designed with an **Offline Demonstration Protocol** ensuring runtime execution does not require internet access after the required model assets are pre-cached in the Docker image:
+1. **Local Pre-Cached Weights:** Transformer weights (`all-MiniLM-L6-v2`, ~80MB) and spaCy linguistic models are pre-cached directly into the Docker image layers; runtime network downloads are not required.
+2. **Pre-Seeded Synthetic Database:** The PostgreSQL container is populated via `backend/scripts/seed_data.py` with the 60-report synthetic MVD dataset, 3 active precursor clusters, and 8 historical human reviews.
+3. **Local Standalone Mode:** If venue Wi-Fi is degraded or unavailable, the presenter accesses `http://localhost:80` (or `http://localhost:3000`). The entire end-to-end stack runs self-contained on the presenter's laptop.
 
 ---
 
@@ -606,7 +618,7 @@ To guarantee flawless execution during the live SIH 2026 hackathon evaluation, t
 | DEPLOYMENT DOMAIN      | SIH 2026 HACKATHON PROTOTYPE (P0)   | ENTERPRISE OIL PRODUCTION TARGET (P2)|
 +------------------------+-------------------------------------+--------------------------------------+
 | Orchestration Engine   | Docker Compose (Single Host)        | Red Hat OpenShift / Kubernetes (K8s) |
-| Ingress / TLS          | Automated Caddy Reverse Proxy       | Enterprise Hardware WAF + F5 LB      |
+| Ingress / TLS          | Nginx Reverse Proxy / Static Server | Enterprise Hardware WAF + F5 LB      |
 | Compute Sizing         | 4 vCPU, 8GB RAM, 50GB SSD           | Distributed Pods with GPU Auto-scale |
 | Relational Storage     | Containerized PostgreSQL 16         | Managed High-Availability PostgreSQL |
 | High Availability      | Single instance auto-restart        | Multi-AZ Standby + Active Read Replicas|
