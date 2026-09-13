@@ -331,12 +331,14 @@ flowchart TD
     BAR -- Ambiguous / Insufficient Text --> SIF_REV[SIF Potential: REVIEW\nPriority: P2-High\nAmbiguous context routed to human triage]
 ```
 
-### Causal Assessment Logic
-The engine evaluates the causal precursor triad:
+### Proposed Causal Precursor Triad Decision Framework
+The platform evaluates safety reports using our **proposed explainable H0 decision framework** (the Causal Precursor Triad):
 $$\text{SIF Potential} = f(\text{Hazard Energy Level}, \text{Worker Exposure Reality}, \text{Barrier Integrity State})$$
 
+*(Clarification: This causal triad is Tech Smashers' proposed explainable decision framework for deterministic prototype reasoning. While deeply grounded in Energy-Based Safety literature and designed to map to IOGP Life-Saving Rules, it is an engineering decision framework developed for this platform, not an official IOGP definition or industry-standard mathematical formula).*
+
 - **SIF Potential = YES:** Emitted when `Hazard Energy == HIGH` AND `Worker Exposure == TRUE` AND `Barrier Status` $\in \{\text{MISSING}, \text{INCOMPLETE}, \text{FAILED}, \text{BYPASSED}\}$.
-- **SIF Potential = NO:** Emitted when `Hazard Energy == LOW` OR (`Barrier Status == PRESENT/VERIFIED` with zero unmitigated exposure).
+- **SIF Potential = NO:** Emitted when `Hazard Energy == LOW` OR (`Barrier Status == PRESENT_VERIFIED` with zero unmitigated exposure).
 - **SIF Potential = REVIEW:** Emitted when `Hazard Energy == HIGH` AND `Worker Exposure == TRUE`, but narrative text provides insufficient evidence to confirm barrier status (`Barrier Status == UNKNOWN`).
 
 ---
@@ -375,11 +377,13 @@ flowchart TD
 
 ## 14. Recommended Prototype Model Design
 
-For the hackathon MVP, Tech Smashers specifies a pragmatic, high-performance local architecture that eliminates cloud latency and external API cost `[RECOMMENDED IMPLEMENTATION]`:
+For the hackathon MVP, Tech Smashers specifies a pragmatic, high-performance local architecture that eliminates cloud latency and external API cost (`[RECOMMENDED IMPLEMENTATION]`):
 
-1. **Language Representation Backbone:** A lightweight, highly optimized transformer backbone (e.g., `all-MiniLM-L6-v2` or fine-tuned `DeBERTa-v3-small`) to generate 384-dimensional semantic embeddings of narrative clauses.
-2. **Domain Heuristic Layer:** Python-based deterministic pattern-matching engine implementing IOGP Report 459 life-saving rule logic and Energy-Based Safety barrier checks.
-3. **Execution Runtime:** Operates entirely in-memory on standard CPU hardware with single-report inference latency $\le 800\text{ ms}$, ensuring zero dependency on proprietary cloud GPUs or paid external LLM endpoints.
+1. **Language Representation Backbone (H0 Baseline):** A lightweight, CPU-optimized transformer (`sentence-transformers/all-MiniLM-L6-v2`) generating 384-dimensional semantic embeddings of narrative clauses for similarity ranking against canonical IOGP Life-Saving Rules. (Fine-tuned `DeBERTa-v3-small` is explicitly classified as an **H1 post-hackathon enhancement** once authenticated operational training data becomes available).
+2. **Linguistic Preprocessing & Entity Engine:** spaCy (`en_core_web_sm`) dependency parser evaluating syntactic negation scope (`neg`), parts of speech, and prepositional temporal markers (`before` vs. `after`).
+3. **Domain Heuristic Layer:** Python-based deterministic safety rules implementing physical hazard energy matrices, 6-state barrier evaluation, and outcome-blind SIF reasoning.
+4. **Offline Model Asset Pre-Caching:** Designed for offline operation, ensuring runtime execution does not require internet access after the required model assets (`en_core_web_sm` and `all-MiniLM-L6-v2`) are pre-cached in the Docker image during build time.
+5. **Execution Runtime:** Operates entirely in-memory on standard CPU hardware with single-report inference latency $\le 800\text{ ms}$ (design target), ensuring zero dependency on proprietary cloud GPUs or paid external LLM endpoints.
 
 ---
 

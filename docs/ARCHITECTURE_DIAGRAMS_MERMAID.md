@@ -64,7 +64,7 @@ flowchart TD
         
         subgraph DUAL ["Dual-Path Hybrid Reasoning Core"]
             RULE["Deterministic Energy-Barrier Rules\n(Known Physical Hazard Matrix)"]:::aiStyle
-            SEM["Semantic Vector Classifier\n(Transformer all-MiniLM / DeBERTa)"]:::aiStyle
+            SEM["Semantic Vector Classifier\n(Transformer all-MiniLM-L6-v2; DeBERTa H1)"]:::aiStyle
         end
 
         BAR["6-State Barrier Integrity Evaluator\n(Present/Verified, Missing, Incomplete, Failed, Bypassed, Unknown)"]:::aiStyle
@@ -158,9 +158,9 @@ flowchart TD
             E_MAT --> B_LOG
         end
 
-        subgraph PATH_2 ["Path 2: Deep Semantic & Representation Learning"]
+        subgraph PATH_2 ["Path 2: Semantic Representation & Similarity"]
             EMB["Contextual Dense Embedding\n(sentence-transformers/all-MiniLM-L6-v2)"]:::ml
-            CLF["Calibrated Transformer Classifier\n(Fine-Tuned DeBERTa-v3 on Domain Taxonomy)"]:::ml
+            CLF["Semantic Rule & LSR Matcher\n(Cosine Similarity on 384d Embeddings; DeBERTa fine-tuning H1)"]:::ml
             EMB --> CLF
         end
 
@@ -258,12 +258,8 @@ flowchart TD
     subgraph HOST ["Single Node Host / Cloud VPS / On-Prem Rig Server (Ubuntu 22.04 LTS / RHEL)"]
         direction TB
 
-        subgraph INGRESS ["Ingress & Reverse Proxy Container"]
-            NGINX["Nginx / Caddy Web Server (Port 80 / 443)\n• SSL/TLS Termination\n• Gzip Compression & Rate Limiting\n• Static Asset Caching"]:::edge
-        end
-
-        subgraph FRONTEND ["Presentation Container (frontend-web)"]
-            VITE_NODE["React 18 + Vite (Port 3000)\n• Tailwind CSS / Vanilla Design Tokens\n• Lucide Icons & Responsive Views\n• Client-side State & Evidence Highlighting"]:::edge
+        subgraph FRONTEND ["Presentation & Reverse Proxy Container (sih-frontend)"]
+            NGINX["Nginx Web Server (Port 80 / 3000)\n• React 18 + Vite Static Assets\n• Reverse Proxy (/api/v1 -> Backend:8000)\n• Rate Limiting & Gzip"]:::edge
         end
 
         subgraph BACKEND ["Application & Inference Container (backend-api)"]
