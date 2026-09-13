@@ -830,13 +830,75 @@ Exposes the append-only cryptographic audit log. Restricted exclusively to users
 
 ## 31. Authentication & Role-Based Access Control (RBAC)
 
-Authentication is enforced via Bearer JWT tokens in the `Authorization: Bearer <TOKEN>` header `[PROPOSED API DESIGN]`:
+Authentication is enforced via Bearer JWT tokens in the `Authorization: Bearer <TOKEN>` header (`SEC-001`).
+
+### `POST /api/v1/auth/login`
+Authenticates user credentials against salted `bcrypt` password hashes stored in `app_users` and issues a cryptographically signed JWT access token.
+
+- **Caller:** Frontend UI authentication modal or API integration client.
+- **Request Headers:** `Content-Type: application/json`
+- **Request Payload:**
+```json
+{
+  "username": "hse_officer_01",
+  "password": "CorrectHorseBatteryStaple123!"
+}
+```
+
+#### Response Payload (`200 OK`)
+```json
+{
+  "success": true,
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1MTExMTExMS0xMTExLTExMTEtMTExMS0xMTExMTExMTExMTEiLCJ1c2VybmFtZSI6ImhzZV9vZmZpY2VyXzAxIiwicm9sZSI6IkhTRV9PRkZJQ0VSIiwiZXhwIjoxNzc5Mzk1MjAwfQ...",
+    "token_type": "bearer",
+    "expires_in": 900,
+    "user": {
+      "id": "u1111111-1111-1111-1111-111111111111",
+      "username": "hse_officer_01",
+      "full_name": "Senior Field HSE Officer",
+      "role": "HSE_OFFICER"
+    }
+  },
+  "error": null,
+  "meta": {
+    "request_id": "req-99887766-5544-3322-1100-aabbccddeeff",
+    "timestamp": "2026-03-15T14:30:00.000Z",
+    "version": "1.0.0-mvp",
+    "provenance": "SYNTHETIC_PROTOTYPE"
+  }
+}
+```
+
+#### Error Responses
+- **`401 Unauthorized` (`INVALID_CREDENTIALS`):**
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "Invalid username or password.",
+    "details": null
+  },
+  "meta": {
+    "request_id": "req-99887766-5544-3322-1100-aabbccddeeff",
+    "timestamp": "2026-03-15T14:30:00.000Z",
+    "version": "1.0.0-mvp",
+    "provenance": "SYNTHETIC_PROTOTYPE"
+  }
+}
+```
+- **`422 Unprocessable Entity` (`VALIDATION_ERROR`):** Request body missing required `username` or `password` attributes.
+
+### Canonical H0 RBAC Roles
 
 | User Role | Permitted API Scope | Prohibited Actions |
 |---|---|---|
 | `HSE_VIEWER` | `GET` on reports, dashboard, analysis, patterns | `POST /reports`, `POST /reviews` |
 | `HSE_ANALYST`| All viewer permissions + `POST /analyze`, `POST /patterns/generate` | `POST /reviews` (Formal sign-off) |
 | `HSE_OFFICER`| All analyst permissions + `POST /reports/{id}/reviews` | System configuration alterations |
+| `ADMINISTRATOR`| Full administrative access: user management, reference taxonomies | Mutation of raw incident narratives |
 | `SYSTEM_AUDITOR`| Exclusive access to `GET /audit/events` + read-only logs | Mutation of operational data |
 | `ML_OPS_ENGINEER`| Access to `GET /processing-runs/{id}` + model telemetry | Manual safety review submission |
 
@@ -939,6 +1001,7 @@ Write operations (`POST /reports`, `POST /reviews`) accept an optional `Idempote
 
 | API Endpoint | HTTP Verb | Primary Database Table(s) (`09_DATABASE_DESIGN.md`) | Operations | Technical Req ID (`06`) |
 |---|---|---|---|---|
+| `/api/v1/auth/login` | `POST` | `app_users` | `SELECT` | `SEC-001` |
 | `/api/v1/reports` | `POST` | `safety_reports`, `data_sources` | `INSERT` | `FR-001`, `DATA-002` |
 | `/api/v1/reports` | `GET` | `safety_reports`, `sif_assessments` | `SELECT` | `FR-001` |
 | `/api/v1/reports/{id}` | `GET` | `safety_reports` | `SELECT` | `FR-001` |
