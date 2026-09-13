@@ -678,7 +678,7 @@ Provides a cryptographically verifiable, append-only history of all security and
 
 ## 32. User & Reviewer Identity (`app_users`)
 
-Stores minimal identity attributes necessary for Role-Based Access Control (`SEC-001`):
+Stores minimal identity attributes necessary for Role-Based Access Control (`SEC-001`). Passwords are NEVER stored in plaintext; only salted `bcrypt` hashes (`passlib[bcrypt]`) are persisted in `password_hash`. Authentication validates user credentials against this hash and issues stateless, cryptographically signed JWT access tokens:
 
 ```
 +---------------------------------------------------------------------------------------+
@@ -686,11 +686,14 @@ Stores minimal identity attributes necessary for Role-Based Access Control (`SEC
 +---------------------------------------------------------------------------------------+
 | user_id              : UUID (PK)                                                      |
 | username             : VARCHAR(100) UNIQUE NOT NULL                                   |
+| password_hash        : VARCHAR(255) NOT NULL (bcrypt hash via passlib[bcrypt])        |
 | full_name            : VARCHAR(255) NOT NULL                                          |
 | email                : VARCHAR(255) UNIQUE NOT NULL                                   |
 | role                 : VARCHAR(50) CHECK (role IN (                                   |
+|                          'HSE_VIEWER',                                                |
+|                          'HSE_ANALYST',                                               |
 |                          'HSE_OFFICER',                                               |
-|                          'EXECUTIVE_DIRECTOR',                                        |
+|                          'ADMINISTRATOR',                                             |
 |                          'SYSTEM_AUDITOR',                                            |
 |                          'ML_OPS_ENGINEER'))                                          |
 | is_active            : BOOLEAN DEFAULT TRUE                                           |
@@ -1142,9 +1145,12 @@ CREATE TABLE data_sources (
 CREATE TABLE app_users (
     user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     username VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    role VARCHAR(50) NOT NULL CHECK (role IN ('HSE_OFFICER', 'EXECUTIVE_DIRECTOR', 'SYSTEM_AUDITOR', 'ML_OPS_ENGINEER')),
+    role VARCHAR(50) NOT NULL CHECK (role IN (
+        'HSE_VIEWER', 'HSE_ANALYST', 'HSE_OFFICER', 'ADMINISTRATOR', 'SYSTEM_AUDITOR', 'ML_OPS_ENGINEER'
+    )),
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
 );
@@ -1582,6 +1588,18 @@ Reference taxonomies are pre-seeded in the database to prevent arbitrary string 
 - **IOGP Life-Saving Rules:** Pre-seeded with the 9 canonical rules from IOGP Report 459.
 - **Barrier Categories:** Fixed enum types (`PHYSICAL`, `ADMINISTRATIVE`, `PROCEDURAL`, `PPE`).
 - **Hazard Classifications:** Pre-seeded energy types (Gravitational, Flammable, Toxic H2S, High Pressure, Mechanical/Rotating).
+
+### 62.1 H0 Bootstrap & Seed Mechanism (`backend/scripts/seed_data.py`)
+
+The prototype uses a dedicated bootstrap script to ensure repeatable, deterministic initialization:
+- **Script Location:** `backend/scripts/seed_data.py`.
+- **Execution Timing:** Runs immediately after database container readiness and Alembic schema migrations, before the FastAPI backend accepts traffic (`PostgreSQL startup → Alembic migrations → seed_data.py → FastAPI startup`).
+- **Data Seeded:**
+  1. `data_sources`: Seeds default source records (`SYNTHETIC_PROTOTYPE`, `PUBLIC_BENCHMARK`).
+  2. `app_users`: Seeds canonical local test accounts for all roles (`HSE_VIEWER`, `HSE_ANALYST`, `HSE_OFFICER`, `ADMINISTRATOR`, `SYSTEM_AUDITOR`, `ML_OPS_ENGINEER`) with salted `bcrypt` password hashes (`password_hash`).
+  3. Reference Taxonomies: Seeds IOGP Life-Saving Rules and standard safety dictionary fixtures.
+  4. Prototype Reports: Seeds the synthetic MVD-60 benchmark reports for offline judging and automated testing.
+- **Strict Data Policy:** Production or confidential Oil India Limited data must NEVER be seeded or committed to this repository.
 
 ---
 
