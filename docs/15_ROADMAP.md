@@ -139,7 +139,7 @@ As established across documents `01` through `14`, the project foundation is arc
 | **Data Strategy & Labeling Guidelines** | `05` | Complete (60-report MVD synthetic set, 5 barrier states, 9 LSRs) | Schema Frozen; Data Ingestion to be executed |
 | **Technical & Non-Functional Requirements**| `06` | Complete (IEEE standard FR-001–FR-006, AI-001–AI-008, NFRs) | Acceptance Criteria Defined |
 | **System Architecture & Layering** | `07` | Complete (11 layers, 13 components, synchronous + async workers) | Architecture Baseline Approved |
-| **AI/NLP Pipeline & Hybrid Engine** | `08` | Complete (DeBERTa-v3/spaCy + Rule/Regex + Bow-Tie Barrier Parser) | Pipeline Logic Specified |
+| **AI/NLP Pipeline & Hybrid Engine** | `08` | Complete (spaCy + all-MiniLM-L6-v2 + Rule/Regex + 6-State Barrier Parser; DeBERTa H1) | Pipeline Logic Specified |
 | **Relational Database Design** | `09` | Complete (18 tables, PostgreSQL 16, pgvector, check constraints) | DDL Specified & Validated |
 | **RESTful API Contracts** | `10` | Complete (23 endpoints, strict Pydantic envelopes, OpenAPI 3.1) | Schemas & Status Codes Defined |
 | **Security, RBAC & Audit Architecture** | `11` | Complete (JWT, PBKDF2, PII stripping, SHA-256 audit ledger) | Threat Model & Rules Established |
@@ -331,7 +331,7 @@ sequenceDiagram
     Prio-->>Tri: Return consolidated inference payload
 ```
 
-*Note on Implementation Realism:* For H0, contextual inference utilizes a lightweight transformer (`microsoft/deberta-v3-small` or `distilbert-base-uncased` fine-tuned on safety heuristics) paired with an explicit, rule-based expert system (`08_AI_ARCHITECTURE.md`). This guarantees $100\%$ explainability, rapid CPU-based inference, and zero reliance on external proprietary APIs during live judging.
+*Note on Implementation Realism:* For H0, contextual inference utilizes lightweight semantic embeddings (`sentence-transformers/all-MiniLM-L6-v2`) paired with a deterministic expert rule engine and spaCy linguistic parsing (`08_AI_ARCHITECTURE.md`). Fine-tuning larger domain transformers (`microsoft/deberta-v3-small`) is scheduled for H1 post-hackathon pilot validation once authenticated field training datasets become available. This guarantees $100\%$ explainability, rapid CPU-based inference, and zero reliance on external proprietary APIs during live judging.
 
 ---
 
@@ -511,7 +511,7 @@ The transition from the H0 Prototype to a fully validated MVP and future Product
 | Engineering Dimension | H0 Prototype Baseline | Required for Production Platform | Gap / Planned Remediation |
 | :--- | :--- | :--- | :--- |
 | **Data Provenance** | Synthetic reports + Public CSB | Authorized, multi-year OIL incident reports | Establish secure, on-premise OIL data onboarding protocol. |
-| **AI Classification** | DeBERTa-v3-small + Heuristic Rules | Domain-calibrated hybrid transformer + Rule engine | Fine-tune on authenticated oil & gas operational lexicons. |
+| **AI Classification** | spaCy + all-MiniLM-L6-v2 + Heuristic Rules | Domain-calibrated hybrid transformer (DeBERTa) + Rule engine | Fine-tune on authenticated oil & gas operational lexicons. |
 | **Authentication & RBAC** | Local JWT + Seeded Mock Users | Enterprise SAML 2.0 / Active Directory / OAuth2 | Integrate enterprise identity provider (`SEC-002`). |
 | **Database Architecture** | Standalone PostgreSQL 16 Container | High Availability Patroni / Repmgr + Read Replicas | Implement multi-node failover and managed DB orchestration. |
 | **Persistence Storage** | Local Docker Named Volume | Encrypted S3 / MinIO Object Storage | Deploy redundant, multi-zone block and object storage. |
@@ -763,8 +763,8 @@ The AI engine evolves from an agile prototype baseline to an enterprise-grade in
 
 $$\mathbf{Prototype\ Hybrid\ Engine} \longrightarrow \mathbf{Domain\ Fine\text{-}Tuned\ Model} \longrightarrow \mathbf{Calibrated\ Ensemble} \longrightarrow \mathbf{Governed\ Enterprise\ AI}$$
 
-- **H0 Baseline:** Small transformer (`deberta-v3-small`) paired with deterministic regex rule tables.
-- **H2 Pilot:** Transformer fine-tuned on anonymized domain safety narratives; calibrated confidence scoring.
+- **H0 Baseline:** spaCy linguistic parser + `sentence-transformers/all-MiniLM-L6-v2` paired with deterministic safety rule tables.
+- **H1/H2 Pilot:** Domain transformer (`DeBERTa-v3-small`) fine-tuned on authenticated domain safety narratives; calibrated confidence scoring.
 - **H4 Production:** Ensembled contextual representations with active drift monitoring, automated explainability benchmarks, and sub-second inference caching.
 
 ---

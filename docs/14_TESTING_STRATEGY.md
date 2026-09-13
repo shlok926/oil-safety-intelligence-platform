@@ -485,7 +485,7 @@ Executed using automated Playwright browser tests covering the 10 formal scenari
 | TC-E2E-09   | RBAC Security Boundary Enforcement  | Viewer attempts review override -> assert 403  |
 |             |                                     | Forbidden and UI override button is disabled.  |
 +-------------+-------------------------------------+------------------------------------------------+
-| TC-E2E-10   | 100% Offline Demonstration Recovery | Disconnect host network -> assert entire demo  |
+| TC-E2E-10   | Offline Demonstration Recovery      | Disconnect host network -> assert entire demo  |
 |             |                                     | executes locally from pre-cached Docker image. |
 +-------------+-------------------------------------+------------------------------------------------+
 ```
@@ -542,7 +542,7 @@ echo "=== DEMO ENVIRONMENT 100% READY FOR SIH EVALUATION ==="
 | `HIL-002` | Audit Trail for Safety Overrides | `TC-HIL-01`, `TC-DB-HASH` | Passed (SHA-256 Ledger) |
 | `SEC-001` | PII Masking & Data Minimization | `TC-SEC-01` | Passed (Deterministic Scrub) |
 | `SEC-002` | Cryptographic Tamper-Resistant Ledger | `TC-DB-HASH` | Passed (Chain Verified) |
-| `NFR-001` | Processing Latency ($p95 < 2000\text{ms}$) | `TC-PERF-01` | Passed (Avg: 420ms on CPU) |
+| `NFR-001` | Processing Latency ($p95 < 2000\text{ms}$) | `TC-PERF-01` | Design target: ≤420ms average processing time on CPU for MVD-60 fixture. |
 | `NFR-002` | System Availability & Fault Tolerance | `TC-CHAOS-01`, `TC-DEP-01` | Passed (Auto-Recovery) |
 | `NFR-003` | Fail-Safe Uncertainty Handling | `TC-AI-004`, `TC-CHAOS-01` | Passed (Emits `SIF: REVIEW`) |
 
