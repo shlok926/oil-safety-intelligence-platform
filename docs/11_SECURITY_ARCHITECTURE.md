@@ -12,7 +12,7 @@
 
 > **Architectural Tagging Discipline:**
 > - `[PROPOSED SECURITY DESIGN]` — Security policies, threat mitigations, and access controls designed by Tech Smashers.
-> - `[RECOMMENDED IMPLEMENTATION]` — Pragmatic, industry-standard security implementations (e.g., Argon2id, JWT Bearer tokens, TLS 1.3, Pydantic input validation) for the hackathon MVP.
+> - `[RECOMMENDED IMPLEMENTATION]` — Pragmatic, industry-standard security implementations (e.g., bcrypt password hashing, JWT Bearer tokens, TLS 1.3, Pydantic input validation) for the hackathon MVP.
 > - `[PROTOTYPE ASSUMPTION]` — Modeling choices made to operate reliably on synthetic/public data without access to proprietary OIL enterprise networks.
 > - `[FUTURE ENHANCEMENT]` — Advanced enterprise security infrastructure (e.g., Hardware Security Modules, SAML2/OIDC SSO federation, SIEM integration, automated DAST pipelines) reserved for production.
 > - `[TO BE CONFIRMED WITH OIL]` — Enterprise IT/HSE security parameters, corporate active directory infrastructure, statutory retention rules, and network firewalls that must be officially confirmed with Oil India Limited.
@@ -171,7 +171,7 @@ To avoid unverified assumptions regarding Oil India Limited's internal classific
 | `recurring_patterns` | Systemic cross-facility precursor clusters | **Level 2** | TLS 1.3 | AES-256 Storage | Authenticated Users |
 | `human_reviews` | Safety officer overrides and review notes | **Level 3** | TLS 1.3 | AES-256 Storage | Restricted to HSE Officers |
 | `audit_events` | Tamper-evident governance ledger | **Level 4** | TLS 1.3 | Append-Only / Chained | `SYSTEM_AUDITOR` Only |
-| `app_users` | Reviewer names, hashed passwords, emails | **Level 4** | TLS 1.3 | Argon2id Hash / AES | System Administrators |
+| `app_users` | Reviewer names, hashed passwords, emails | **Level 4** | TLS 1.3 | bcrypt Hash / AES | System Administrators |
 
 ---
 
@@ -220,8 +220,8 @@ flowchart LR
 
 ### 9.1 Prototype Authentication (`[RECOMMENDED IMPLEMENTATION]`)
 For the SIH 2026 hackathon MVP, the platform implements a secure, stateless JWT Bearer token authentication mechanism:
-- **Password Hashing:** Passwords stored in `app_users` are hashed using **Argon2id** (Memory cost: 64MB, Time cost: 3 iterations, Parallelism: 4 threads). Legacy MD5, SHA-1, or unsalted SHA-256 algorithms are strictly prohibited.
-- **Token Signing:** JWT tokens are signed using asymmetric `RS256` or symmetric `HS256` with high-entropy 256-bit secrets injected via environment variables.
+- **Password Hashing:** Passwords stored in `app_users` are hashed using **bcrypt** via `passlib[bcrypt]` (salt rounds: 12) for lightweight dependency footprint and robust security. Legacy MD5, SHA-1, or unsalted algorithms are strictly prohibited. (Argon2id is preserved as a future H1/enterprise hardening configuration).
+- **Token Signing:** JWT tokens are signed using symmetric `HS256` (or asymmetric `RS256`) with high-entropy 256-bit secrets injected via environment variables.
 - **Token Lifespan:** Access tokens have a maximum validity of **15 minutes**. Refresh tokens are bound to specific client instances and expire after 24 hours.
 
 ### 9.2 Enterprise Target Architecture (`[FUTURE ENHANCEMENT]` / `[TO BE CONFIRMED WITH OIL]`)
@@ -233,7 +233,7 @@ In production deployment within Oil India Limited's corporate network:
 
 ## 10. Authorization & Role-Based Access Control (RBAC)
 
-The platform enforces five canonical roles with strict hierarchical permissions `[PROPOSED SECURITY DESIGN]`:
+The platform enforces six canonical roles with strict hierarchical permissions:
 
 ```
 [ ROLE HIERARCHY ]
@@ -248,24 +248,27 @@ The platform enforces five canonical roles with strict hierarchical permissions 
        HSE_ANALYST                 │
             │                      │
             ▼                      │
-       HSE_VIEWER ─────────────────┘
+       HSE_VIEWER ─────────────────┤
+                                   │
+      ML_OPS_ENGINEER ─────────────┘ (Model Telemetry & Run Diagnostics)
 ```
 
 ### Comprehensive Role-Permission Matrix
 
-| Functional Operation | Primary API Route | `HSE_VIEWER` | `HSE_ANALYST` | `HSE_OFFICER` | `ADMINISTRATOR` | `SYSTEM_AUDITOR` |
-|---|---|:---:|:---:|:---:|:---:|:---:|
-| **View Executive Dashboard** | `GET /dashboard/summary` | Allowed | Allowed | Allowed | Allowed | Allowed |
-| **Search & List Reports** | `GET /reports` | Allowed | Allowed | Allowed | Allowed | Allowed |
-| **View Single Report Metadata**| `GET /reports/{id}` | Allowed | Allowed | Allowed | Allowed | Allowed |
-| **View AI SIF Analysis & Spans**| `GET /reports/{id}/analysis` | Allowed | Allowed | Allowed | Allowed | Allowed |
-| **Submit New Safety Report** | `POST /reports` | Denied | Allowed | Allowed | Allowed | Denied |
-| **Trigger AI Reanalysis** | `POST /reports/{id}/analyze` | Denied | Allowed | Allowed | Allowed | Denied |
-| **Generate Pattern Clusters**| `POST /patterns/generate` | Denied | Allowed | Allowed | Allowed | Denied |
-| **Submit Formal HSE Review** | `POST /reports/{id}/reviews` | Denied | Denied | **Allowed** | Denied | Denied |
-| **Manage Life-Saving Rules** | `POST /configuration/rules` | Denied | Denied | Denied | **Allowed** | Denied |
-| **Manage User Accounts** | `POST /users` | Denied | Denied | Denied | **Allowed** | Denied |
-| **Inspect Tamper Audit Ledger**| `GET /audit/events` | Denied | Denied | Denied | Denied | **Allowed** |
+| Functional Operation | Primary API Route | `HSE_VIEWER` | `HSE_ANALYST` | `HSE_OFFICER` | `ADMINISTRATOR` | `SYSTEM_AUDITOR` | `ML_OPS_ENGINEER` |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **View Executive Dashboard** | `GET /dashboard/summary` | Allowed | Allowed | Allowed | Allowed | Allowed | Allowed |
+| **Search & List Reports** | `GET /reports` | Allowed | Allowed | Allowed | Allowed | Allowed | Allowed |
+| **View Single Report Metadata**| `GET /reports/{id}` | Allowed | Allowed | Allowed | Allowed | Allowed | Allowed |
+| **View AI SIF Analysis & Spans**| `GET /reports/{id}/analysis` | Allowed | Allowed | Allowed | Allowed | Allowed | Allowed |
+| **Submit New Safety Report** | `POST /reports` | Denied | Allowed | Allowed | Allowed | Denied | Denied |
+| **Trigger AI Reanalysis** | `POST /reports/{id}/analyze` | Denied | Allowed | Allowed | Allowed | Denied | Allowed |
+| **Generate Pattern Clusters**| `POST /patterns/generate` | Denied | Allowed | Allowed | Allowed | Denied | Allowed |
+| **Submit Formal HSE Review** | `POST /reports/{id}/reviews` | Denied | Denied | **Allowed** | Denied | Denied | Denied |
+| **Inspect Run Telemetry** | `GET /processing-runs/{id}` | Denied | Denied | Allowed | Allowed | Denied | **Allowed** |
+| **Inspect Tamper Audit Ledger**| `GET /audit/events` | Denied | Denied | Denied | Denied | **Allowed** | Denied |
+| **Manage Life-Saving Rules** | `POST /configuration/rules` *(H1 / Future Admin Capability)* | Denied | Denied | Denied | **Allowed** | Denied | Denied |
+| **Manage User Accounts** | `POST /users` *(H1 / Future Admin Capability)* | Denied | Denied | Denied | **Allowed** | Denied | Denied |
 
 ---
 
@@ -347,7 +350,7 @@ Industrial safety AI introduces unique vulnerabilities that do not exist in conv
 ```
 
 ### 15.1 Prompt Injection Defenses
-Even though the primary MVP inference backbone utilizes fine-grained transformers and deterministic heuristic rules (`all-MiniLM-L6-v2` / DeBERTa) rather than generative chat models (`08_AI_ARCHITECTURE.md`), the architecture enforces defensive design against natural language manipulation:
+Even though the primary MVP inference backbone utilizes sentence transformers and deterministic heuristic rules (`all-MiniLM-L6-v2` + rules; DeBERTa fine-tuning reserved for H1) rather than generative chat models (`08_AI_ARCHITECTURE.md`), the architecture enforces defensive design against natural language manipulation:
 - **Data/Instruction Decoupling:** Frontline text is tokenized solely within language representation layers. System control instructions are never concatenated with user prose.
 - **Adversarial Keyword Gating:** Stage 1 preprocessing scans for adversarial instruction tokens (`"ignore previous"`, `"system prompt"`, `"override classification"`), stripping them and flagging the submission for manual audit.
 
@@ -503,7 +506,7 @@ In the event of a suspected security breach or data integrity violation:
 +----------------------------------------------------------------------------------------------------+
 | Security Domain        | SIH 2026 Hackathon Prototype (P0)    | Enterprise OIL Production Target (P2)|
 +------------------------+--------------------------------------+--------------------------------------+
-| Identity Management    | Local Argon2id + JWT Bearer Tokens   | Enterprise SAML 2.0 / OIDC (Entra ID)|
+| Identity Management    | Local bcrypt + JWT Bearer Tokens     | Enterprise SAML 2.0 / OIDC (Entra ID)|
 | MFA Enforcement        | Optional / Simulated for Demo        | Mandatory for all HSE Reviewers      |
 | Network Perimeter      | Docker Bridge Network + Host TLS     | Dedicated Corporate Subnet (VPC/WAF) |
 | Secrets Storage        | Container Environment Variables      | HashiCorp Vault / Azure Key Vault    |
@@ -538,7 +541,7 @@ In the event of a suspected security breach or data integrity violation:
 | `safety_reports.raw_narrative` | Information disclosure / PII leakage | Encrypted at rest (AES-256); access restricted to HSE roles. |
 | `safety_reports.normalized_narrative`| Injection / malformed token processing | PII scrubbed; domain abbreviations expanded safely. |
 | `sif_assessments.sif_potential`| Unauthorized tampering of safety status | Relational `UPDATE` disabled; superseded via `is_active_assessment`. |
-| `barrier_findings.barrier_status`| Arbitrary string manipulation | Strict check constraints enforcing 5 canonical states. |
+| `barrier_findings.barrier_status`| Arbitrary string manipulation | Strict check constraints enforcing 6 canonical states. |
 | `evidence_spans.start_offset` | Evidence fabrication / desynchronization | Checked against `LENGTH(normalized_narrative)` on insert. |
 | `human_reviews` (All Columns) | Overwriting raw model outputs | Strictly append-only table; references original assessment ID. |
 | `audit_events.prev_event_hash` | Silent database log deletion | Cryptographic SHA-256 hash chaining detecting ledger tampering. |
