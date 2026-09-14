@@ -1,8 +1,8 @@
 # frontend/
 
-**Status: Not yet implemented.**
+**Status: Phase 1 Foundation Established (H0 Skeleton).**
 
-This directory will contain the Safety Intelligence Dashboard UI once H0 prototype implementation begins.
+This directory contains the React 18, TypeScript, Vite, and Vanilla CSS UI foundation featuring health probes and resilient system connectivity monitoring. Safety Intelligence dashboard modules will be implemented in subsequent phases.
 
 - Product blueprint (dashboard requirements): [`../docs/02_PRODUCT_BLUEPRINT.md`](../docs/02_PRODUCT_BLUEPRINT.md) §15
 - UI/UX design: [`../docs/12_UI_UX_DESIGN.md`](../docs/12_UI_UX_DESIGN.md)

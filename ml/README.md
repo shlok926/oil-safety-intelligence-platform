@@ -1,8 +1,8 @@
 # ml/
 
-**Status: Not yet implemented.**
+**Status: Phase 1 Foundation Established (Interfaces & Cache Contracts).**
 
-This directory will contain the NLP/SIF/Barrier/LSR/Pattern-Discovery models and pipelines once H0 prototype implementation begins.
+This directory contains the abstract pipeline interfaces (`ml/pipelines/interfaces.py`), offline model cache contracts (`ml/models/loader.py`), and domain schemas (`ml/rules/schemas.py`). Actual model weights, NLP processors, and SIF classifiers will be integrated in subsequent phases.
 
 - AI architecture: [`../docs/08_AI_ARCHITECTURE.md`](../docs/08_AI_ARCHITECTURE.md)
 - Data strategy & labeling (synthetic/prototype data policy): [`../docs/05_DATA_STRATEGY_AND_LABELING.md`](../docs/05_DATA_STRATEGY_AND_LABELING.md)

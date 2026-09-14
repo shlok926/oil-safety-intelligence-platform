@@ -1,0 +1,20 @@
+[project]
+name = "oil-safety-intelligence-backend"
+version = "0.1.0"
+description = "FastAPI Backend for OIL Safety Intelligence Platform (SIH26165)"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+pythonpath = ["."]
+addopts = "-v --tb=short"
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::UserWarning",
+]
