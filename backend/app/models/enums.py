@@ -1,0 +1,160 @@
+"""
+Canonical Enumerations for OIL Safety Intelligence Platform
+Source of Truth: docs/09_DATABASE_DESIGN.md
+"""
+
+from enum import Enum
+
+
+class SourceType(str, Enum):
+    AUTHORIZED_OIL = "AUTHORIZED_OIL"
+    PUBLIC = "PUBLIC"
+    SYNTHETIC = "SYNTHETIC"
+    MANUAL_LABEL = "MANUAL_LABEL"
+
+
+class AppRole(str, Enum):
+    HSE_VIEWER = "HSE_VIEWER"
+    HSE_ANALYST = "HSE_ANALYST"
+    HSE_OFFICER = "HSE_OFFICER"
+    ADMINISTRATOR = "ADMINISTRATOR"
+    SYSTEM_AUDITOR = "SYSTEM_AUDITOR"
+    ML_OPS_ENGINEER = "ML_OPS_ENGINEER"
+
+
+class ReportType(str, Enum):
+    UNSAFE_ACT = "UNSAFE_ACT"
+    UNSAFE_CONDITION = "UNSAFE_CONDITION"
+    NEAR_MISS = "NEAR_MISS"
+    INCIDENT = "INCIDENT"
+
+
+class OutcomeSeverity(str, Enum):
+    NO_INJURY_NEAR_MISS = "NO_INJURY_NEAR_MISS"
+    FIRST_AID = "FIRST_AID"
+    MEDICAL_TREATMENT = "MEDICAL_TREATMENT"
+    LOST_TIME_INJURY = "LOST_TIME_INJURY"
+    FATALITY = "FATALITY"
+    UNKNOWN = "UNKNOWN"
+
+
+class ProcessingStatus(str, Enum):
+    PENDING = "PENDING"
+    PROCESSING = "PROCESSING"
+    PROCESSED = "PROCESSED"
+    PROCESSING_FAILED = "PROCESSING_FAILED"
+    REVIEWED = "REVIEWED"
+
+
+class ReleaseState(str, Enum):
+    ACTIVE_PRODUCTION = "ACTIVE_PRODUCTION"
+    CANDIDATE = "CANDIDATE"
+    RETIRED = "RETIRED"
+
+
+class ExecutionStatus(str, Enum):
+    SUCCESS = "SUCCESS"
+    FAILED = "FAILED"
+    TIMED_OUT = "TIMED_OUT"
+
+
+class EntityClass(str, Enum):
+    EN_ACTIVITY = "EN_ACTIVITY"
+    EN_HAZARD = "EN_HAZARD"
+    EN_EQUIPMENT = "EN_EQUIPMENT"
+    EN_EXPOSURE = "EN_EXPOSURE"
+    EN_CONTROL = "EN_CONTROL"
+    EN_UNSAFE_ACT = "EN_UNSAFE_ACT"
+    EN_UNSAFE_COND = "EN_UNSAFE_COND"
+
+
+class SignalCategory(str, Enum):
+    ACTIVITY = "ACTIVITY"
+    HAZARD = "HAZARD"
+    EXPOSURE = "EXPOSURE"
+    CONTROL = "CONTROL"
+    UNSAFE_ACT = "UNSAFE_ACT"
+    UNSAFE_CONDITION = "UNSAFE_CONDITION"
+    OUTCOME = "OUTCOME"
+    INTERVENTION = "INTERVENTION"
+
+
+class SignalStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+    SUSPECTED = "SUSPECTED"
+    UNKNOWN = "UNKNOWN"
+
+
+class SIFPotential(str, Enum):
+    YES = "YES"
+    NO = "NO"
+    REVIEW = "REVIEW"
+
+
+class PriorityLevel(str, Enum):
+    P1_CRITICAL = "P1_CRITICAL"
+    P2_HIGH = "P2_HIGH"
+    P3_STANDARD = "P3_STANDARD"
+
+
+class BarrierCategory(str, Enum):
+    PHYSICAL = "PHYSICAL"
+    ADMINISTRATIVE = "ADMINISTRATIVE"
+    PROCEDURAL = "PROCEDURAL"
+    PPE = "PPE"
+
+
+class BarrierStatus(str, Enum):
+    PRESENT_VERIFIED = "PRESENT_VERIFIED"
+    INCOMPLETE = "INCOMPLETE"
+    MISSING = "MISSING"
+    FAILED = "FAILED"
+    BYPASSED = "BYPASSED"
+    UNKNOWN = "UNKNOWN"
+
+
+class MappingMechanism(str, Enum):
+    RULE_BASED = "RULE_BASED"
+    SEMANTIC_COSINE = "SEMANTIC_COSINE"
+    HYBRID = "HYBRID"
+
+
+class TargetEntityType(str, Enum):
+    SIF_ASSESSMENT = "SIF_ASSESSMENT"
+    BARRIER_FINDING = "BARRIER_FINDING"
+    LSR_MAPPING = "LSR_MAPPING"
+    SAFETY_SIGNAL = "SAFETY_SIGNAL"
+
+
+class SeverityTier(str, Enum):
+    TIER_1_CRITICAL = "TIER_1_CRITICAL"
+    TIER_2_HIGH = "TIER_2_HIGH"
+    TIER_3_MONITORED = "TIER_3_MONITORED"
+
+
+class PatternStatus(str, Enum):
+    ACTIVE_HOTSPOT = "ACTIVE_HOTSPOT"
+    INVESTIGATING = "INVESTIGATING"
+    RESOLVED = "RESOLVED"
+    ARCHIVED = "ARCHIVED"
+
+
+class PrioritizationTargetType(str, Enum):
+    REPORT = "REPORT"
+    RECURRING_PATTERN = "RECURRING_PATTERN"
+    FACILITY = "FACILITY"
+
+
+class UrgencyLevel(str, Enum):
+    IMMEDIATE_ACTION = "IMMEDIATE_ACTION"
+    SCHEDULED_AUDIT = "SCHEDULED_AUDIT"
+    ROUTINE_LOG = "ROUTINE_LOG"
+
+
+class ReviewAction(str, Enum):
+    CONFIRM = "CONFIRM"
+    CORRECT = "CORRECT"
+    REJECT = "REJECT"
+    MARK_INSUFFICIENT_EVIDENCE = "MARK_INSUFFICIENT_EVIDENCE"
+    REQUEST_REANALYSIS = "REQUEST_REANALYSIS"
